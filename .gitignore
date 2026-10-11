@@ -1,0 +1,36 @@
+# Maven output
+/target/
+
+# IDE and editor state
+/.idea/
+/.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+/.settings/
+
+# Logs and crash reports
+*.log
+logs/
+hs_err_pid*
+replay_pid*
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local secrets and machine-specific environment
+.env
+.env.*
+!.env.example
+!.env.sample
+*.local.properties
+*.local.yml
+*.local.yaml
+*.p12
+*.pfx
+*.jks
+*.keystore
