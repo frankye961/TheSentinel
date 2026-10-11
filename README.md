@@ -1,19 +1,21 @@
 # TheSentinel
 
-TheSentinel is a Spring Boot security assessment engine project for exploring Java, Spring, HTTP security checks, concurrency, memory, and JVM behavior. The planned application will assess one permitted HTTP target and return structured findings. This repository currently contains **only a build and package skeleton**. It has no application class, endpoint, assessment logic, or tests and cannot run as an application.
+TheSentinel is a Spring Boot security assessment engine project for exploring Java, Spring, HTTP security checks, concurrency, memory, and JVM behavior. The planned application will assess one permitted HTTP target and return structured findings. An application entry point and early model records exist. The REST endpoint, HTTP transport, security checks, and tests are not implemented, so it cannot yet perform an assessment.
 
 ## Toolchain and build
 
 - Java: **25** required; OpenJDK **25.0.4.1** used for verification. Maven compiler release is 25. No preview features.
 - Maven: **3.9.12** used to verify this skeleton; the selected Spring Boot release supports Maven 3.6.3 or later.
 - Spring Boot: **4.1.1**, the latest stable release verified on 2026-10-11. Boot manages Spring Framework and other dependency versions.
-- Dependencies: `spring-boot-starter-webmvc`, `spring-boot-starter-validation`, `spring-boot-starter-restclient`, plus Boot's general, MVC, and RestClient test starters.
+- Dependencies: MVC, validation, and RestClient starters; Lombok for compile-time generation; the SLF4J API with Boot's default logging backend; and Boot's general, MVC, and RestClient test starters. Spring Boot manages their versions.
 
-Run `mvn -version` to confirm Maven uses JDK 25, then `mvn validate` to check the Maven project model and `mvn verify` to resolve dependencies and complete the lifecycle. The empty skeleton can build. Its plain JAR is not executable: Spring Boot repackaging is deferred until an application main class exists. A successful build with no tests verifies neither application startup nor behavior. No test sources exist yet.
+Run `mvn -version` to confirm Maven uses JDK 25, then `mvn validate` to check the Maven project model and `mvn verify` to compile the current sources and complete the lifecycle. The JAR is still plain because Spring Boot repackaging has not been configured. A successful build with no tests verifies neither application startup nor behavior. No test sources exist yet.
+
+`application.yaml` sets 2-second connection and 5-second read timeouts for Boot-configured HTTP clients, disables automatic redirects, and lists two local lab origins. The origin list is configuration data; a future service must check it before fetching. Typed binding and validation of the `assessment` settings are not implemented yet.
 
 ## Directory map
 
-`src/main/java/com/sentinel/` is the planned base package. Package directories contain only `.gitkeep` until implementation is requested.
+`src/main/java/com/sentinel/` is the base package. It contains the application entry point and early model records; other package directories remain placeholders.
 
 | Path | Intended responsibility |
 | --- | --- |
@@ -23,7 +25,7 @@ Run `mvn -version` to confirm Maven uses JDK 25, then `mvn validate` to check th
 | `http` | Small transport contract and Spring RestClient adapter |
 | `model` | Immutable observations, findings, and reports |
 | `config` | Typed settings and infrastructure bean wiring |
-| `src/main/resources` | Future shared application resources |
+| `src/main/resources` | Application configuration and future shared resources |
 | `src/test/java`, `src/test/resources` | Future tests and local fixtures |
 
 ## Planned architecture

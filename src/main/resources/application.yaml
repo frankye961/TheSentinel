@@ -3,11 +3,17 @@ spring:
     name: thesentinel
   http:
     clients:
-      connect-timeout: 2s
-      read-timeout: 5s
+      connect-timeout: ${assessment.http.connect-timeout}
+      read-timeout: ${assessment.http.read-timeout}
       redirects: dont-follow
 
 assessment:
+  http:
+    connect-timeout: 2s
+    read-timeout: 5s
   permitted-origins:
-    - http://localhost:8081
-    - https://localhost:8443
+    - "http://localhost:8081"
+    - "https://localhost:8443"
+  headers-to-check:
+    - "X-Content-Type-Options"
+    - "Strict-Transport-Security"
