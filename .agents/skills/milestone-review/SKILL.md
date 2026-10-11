@@ -1,11 +1,11 @@
 ---
 name: milestone-review
-description: Review milestone work and progress against the README tracker; handle task-scoped commit and push only when the user authorizes Git delivery.
+description: Review milestone work and progress against the MILESTONES.md tracker; handle task-scoped commit and push only when the user authorizes Git delivery.
 ---
 
 # Milestone review
 
-1. Read `AGENTS.md` and the README tracker. Inspect Git status and the relevant diff.
+1. Read `AGENTS.md` and the `MILESTONES.md` tracker. Inspect Git status and the relevant diff.
 2. Identify the current card and its acceptance criteria. Review correctness, Spring wiring, coupling, mutable state, configuration, error handling, resource ownership, and scope compliance where applicable.
 3. Verify Maven uses Java 25 and the selected stable Spring Boot version is compatible. Run relevant existing checks; do not write tests unless requested.
 4. Classify findings by severity, citing files and lines where useful. Record actual verification evidence and unresolved issues in the tracker when documentation updates are authorized. Report the next unfinished card and its learning topics.
