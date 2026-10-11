@@ -5,5 +5,7 @@ import com.sentinel.model.HttpResponseSnapshot;
 
 public interface SecurityChecks {
 
+    String checkId();
+
     CheckResult check(HttpResponseSnapshot responseSnapshot);
 }

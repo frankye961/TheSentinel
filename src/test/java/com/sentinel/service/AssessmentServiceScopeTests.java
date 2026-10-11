@@ -1,6 +1,7 @@
 package com.sentinel.service;
 
 import com.sentinel.config.AssessmentProperties;
+import com.sentinel.config.SecurityCheckProperties;
 import com.sentinel.http.HttpTransport;
 import com.sentinel.model.HttpResponseSnapshot;
 import com.sentinel.model.ValidTarget;
@@ -28,6 +29,7 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
+                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
         URI uri = URI.create("http://localhost:8081/lab");
         HttpResponseSnapshot observation = new HttpResponseSnapshot(uri, new HttpHeaders(), HttpStatus.OK);
@@ -48,6 +50,7 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
+                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
         URI uri = URI.create(target);
 
@@ -67,6 +70,7 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
+                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
 
         assertThatThrownBy(() -> service.fetch(URI.create(target)))
@@ -86,6 +90,7 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("https://example.test"))),
+                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
         URI uri = URI.create(target);
 

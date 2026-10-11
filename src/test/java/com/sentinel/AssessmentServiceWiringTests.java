@@ -37,8 +37,11 @@ class AssessmentServiceWiringTests {
 
         assertThat(context.getBean(HttpTransport.class)).isSameAs(transport);
         assertThat(ReflectionTestUtils.getField(service, "httpTransport")).isSameAs(transport);
-        assertThat(ReflectionTestUtils.getField(service, "securityChecks"))
-                .isEqualTo(List.of(testCheck));
+        List<SecurityChecks> registeredChecks = List.copyOf(context.getBeansOfType(SecurityChecks.class).values());
+        @SuppressWarnings("unchecked")
+        List<SecurityChecks> injectedChecks =
+                (List<SecurityChecks>) ReflectionTestUtils.getField(service, "securityChecks");
+        assertThat(injectedChecks).containsExactlyInAnyOrderElementsOf(registeredChecks).contains(testCheck);
     }
 
     @TestConfiguration(proxyBeanMethods = false)
