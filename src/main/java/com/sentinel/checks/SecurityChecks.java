@@ -3,9 +3,11 @@ package com.sentinel.checks;
 import com.sentinel.model.CheckResult;
 import com.sentinel.model.HttpResponseSnapshot;
 
+import java.util.List;
+
 public interface SecurityChecks {
 
     String checkId();
 
-    CheckResult check(HttpResponseSnapshot responseSnapshot);
+    List<CheckResult> check(HttpResponseSnapshot responseSnapshot);
 }

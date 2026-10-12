@@ -2,20 +2,21 @@ package com.sentinel.service;
 
 import com.sentinel.checks.SecurityChecks;
 import com.sentinel.config.AssessmentProperties;
-import com.sentinel.config.SecurityCheckProperties;
 import com.sentinel.http.HttpTransport;
+import com.sentinel.model.AssessmentReport;
+import com.sentinel.model.AssessmentStatus;
+import com.sentinel.model.CheckResult;
 import com.sentinel.model.HttpResponseSnapshot;
 import com.sentinel.model.ValidTarget;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
-@AllArgsConstructor
 public class AssessmentService {
 
     private static final String HTTP =  "http";
@@ -25,20 +26,29 @@ public class AssessmentService {
 
     private final HttpTransport httpTransport;
     private final AssessmentProperties assessmentProperties;
-    private final SecurityCheckProperties securityCheckProperties;
-    private List<SecurityChecks> securityChecks;
+    private final List<SecurityChecks> securityChecks;
 
-    public List<SecurityChecks> configuredChecks() {
-        return securityCheckProperties.headersToCheck().stream()
-                .map(header -> securityChecks.stream()
-                        .filter(check -> header.equalsIgnoreCase(check.checkId()))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException(
-                                "No check registered for configured header: " + header)))
-                .toList();
+    public AssessmentService(HttpTransport httpTransport, AssessmentProperties assessmentProperties,
+                             List<SecurityChecks> securityChecks) {
+        this.httpTransport = httpTransport;
+        this.assessmentProperties = assessmentProperties;
+        this.securityChecks = List.copyOf(securityChecks);
     }
 
-    public HttpResponseSnapshot fetch(URI uri) {
+    public AssessmentReport execute(URI uri) {
+        HttpResponseSnapshot responseSnapshot = fetch(uri);
+        if (responseSnapshot == null) {
+            log.error("Assessment response is null");
+            return new AssessmentReport(uri, AssessmentStatus.FAILED, List.of());
+        }
+        List<CheckResult> results = new ArrayList<>();
+        for (SecurityChecks check : securityChecks) {
+            results.addAll(check.check(responseSnapshot));
+        }
+        return new AssessmentReport(uri, AssessmentStatus.COMPLETED, results);
+    }
+
+    private HttpResponseSnapshot fetch(URI uri) {
         boolean isInScope = isInScope(uri);
         ValidTarget validTarget = new ValidTarget(uri, isInScope);
         return httpTransport.createHttpResponseSnapshot(validTarget);

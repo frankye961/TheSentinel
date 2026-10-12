@@ -1,9 +1,12 @@
 package com.sentinel.service;
 
+import com.sentinel.checks.SecurityChecks;
 import com.sentinel.config.AssessmentProperties;
-import com.sentinel.config.SecurityCheckProperties;
 import com.sentinel.http.HttpTransport;
+import com.sentinel.model.AssessmentStatus;
+import com.sentinel.model.CheckResult;
 import com.sentinel.model.HttpResponseSnapshot;
+import com.sentinel.model.OutcomeEnum;
 import com.sentinel.model.ValidTarget;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,19 +27,26 @@ import static org.mockito.Mockito.when;
 class AssessmentServiceScopeTests {
 
     @Test
-    void returnsTheObservationProducedByTheTransport() {
+    void returnsAReportForTheObservationProducedByTheTransport() {
         HttpTransport transport = mock(HttpTransport.class);
+        SecurityChecks check = mock(SecurityChecks.class);
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
-                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
-                List.of());
+                List.of(check));
         URI uri = URI.create("http://localhost:8081/lab");
         HttpResponseSnapshot observation = new HttpResponseSnapshot(uri, new HttpHeaders(), HttpStatus.OK);
+        CheckResult result = new CheckResult("X-Content-Type-Options", OutcomeEnum.PASS, "nosniff", "No change needed.");
         when(transport.createHttpResponseSnapshot(new ValidTarget(uri, true))).thenReturn(observation);
+        when(check.check(observation)).thenReturn(List.of(result));
 
-        assertThat(service.fetch(uri)).isSameAs(observation);
+        var report = service.execute(uri);
+
+        assertThat(report.target()).isEqualTo(uri);
+        assertThat(report.status()).isEqualTo(AssessmentStatus.COMPLETED);
+        assertThat(report.results()).containsExactly(result);
         verify(transport).createHttpResponseSnapshot(new ValidTarget(uri, true));
+        verify(check).check(observation);
     }
 
     @ParameterizedTest
@@ -50,11 +60,12 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
-                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
         URI uri = URI.create(target);
+        when(transport.createHttpResponseSnapshot(new ValidTarget(uri, true)))
+                .thenReturn(new HttpResponseSnapshot(uri, new HttpHeaders(), HttpStatus.OK));
 
-        service.fetch(uri);
+        assertThat(service.execute(uri).status()).isEqualTo(AssessmentStatus.COMPLETED);
 
         verify(transport).createHttpResponseSnapshot(new ValidTarget(uri, true));
     }
@@ -70,10 +81,9 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
-                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
 
-        assertThatThrownBy(() -> service.fetch(URI.create(target)))
+        assertThatThrownBy(() -> service.execute(URI.create(target)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("URI not in scope");
         verifyNoInteractions(transport);
@@ -90,11 +100,12 @@ class AssessmentServiceScopeTests {
         AssessmentService service = new AssessmentService(
                 transport,
                 new AssessmentProperties(List.of(URI.create("https://example.test"))),
-                new SecurityCheckProperties(List.of("X-Content-Type-Options")),
                 List.of());
         URI uri = URI.create(target);
+        when(transport.createHttpResponseSnapshot(new ValidTarget(uri, true)))
+                .thenReturn(new HttpResponseSnapshot(uri, new HttpHeaders(), HttpStatus.OK));
 
-        service.fetch(uri);
+        assertThat(service.execute(uri).status()).isEqualTo(AssessmentStatus.COMPLETED);
 
         verify(transport).createHttpResponseSnapshot(new ValidTarget(uri, true));
     }
