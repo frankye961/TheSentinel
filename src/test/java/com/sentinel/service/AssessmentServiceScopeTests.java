@@ -2,6 +2,7 @@ package com.sentinel.service;
 
 import com.sentinel.checks.SecurityChecks;
 import com.sentinel.config.AssessmentProperties;
+import com.sentinel.exception.InvalidAssessmentTargetException;
 import com.sentinel.http.HttpTransport;
 import com.sentinel.model.AssessmentStatus;
 import com.sentinel.model.CheckResult;
@@ -25,6 +26,34 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AssessmentServiceScopeTests {
+
+    @Test
+    void rejectsNullTargetBeforeFetching() {
+        HttpTransport transport = mock(HttpTransport.class);
+        AssessmentService service = new AssessmentService(
+                transport,
+                new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
+                List.of());
+
+        assertThatThrownBy(() -> service.execute(null))
+                .isInstanceOf(InvalidAssessmentTargetException.class)
+                .hasMessage("uri missing");
+        verifyNoInteractions(transport);
+    }
+
+    @Test
+    void rejectsTargetWithUserInfoBeforeFetching() {
+        HttpTransport transport = mock(HttpTransport.class);
+        AssessmentService service = new AssessmentService(
+                transport,
+                new AssessmentProperties(List.of(URI.create("http://localhost:8081"))),
+                List.of());
+
+        assertThatThrownBy(() -> service.execute(URI.create("http://user:secret@localhost:8081/lab")))
+                .isInstanceOf(InvalidAssessmentTargetException.class)
+                .hasMessage("user info cannot be accepted");
+        verifyNoInteractions(transport);
+    }
 
     @Test
     void returnsAReportForTheObservationProducedByTheTransport() {

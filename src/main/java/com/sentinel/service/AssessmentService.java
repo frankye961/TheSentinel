@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -38,6 +37,9 @@ public class AssessmentService {
     }
 
     public AssessmentReport execute(URI uri) {
+        if(uri == null) {
+            throw new InvalidAssessmentTargetException("uri missing");
+        }
         if(uri.getUserInfo() != null) {
             throw new InvalidAssessmentTargetException("user info cannot be accepted");
         }
@@ -46,11 +48,14 @@ public class AssessmentService {
             log.error("Assessment response is null");
             throw new AssessmentTransportException("HTTP transport returned no response snapshot");
         }
-        List<CheckResult> results = new ArrayList<>();
-        for (SecurityChecks check : securityChecks) {
-            results.addAll(check.check(responseSnapshot));
-        }
+        var results = extractResults(securityChecks, responseSnapshot);
         return new AssessmentReport(uri, AssessmentStatus.COMPLETED, results);
+    }
+
+    private List<CheckResult> extractResults(List<SecurityChecks> securityCheck, HttpResponseSnapshot responseSnapshot) {
+        return securityCheck.stream()
+                .flatMap(check -> check.check(responseSnapshot).stream())
+                .toList();
     }
 
     private HttpResponseSnapshot fetch(URI uri) {

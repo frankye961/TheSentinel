@@ -5,6 +5,7 @@ import com.sentinel.exception.AssessmentTransportException;
 import com.sentinel.http.HttpTransport;
 import com.sentinel.model.HttpResponseSnapshot;
 import com.sentinel.model.ValidTarget;
+import lombok.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -22,7 +23,7 @@ public class HttpTransportService implements HttpTransport {
     }
 
     @Override
-    public HttpResponseSnapshot createHttpResponseSnapshot(ValidTarget validTarget) {
+    public HttpResponseSnapshot createHttpResponseSnapshot(@NonNull ValidTarget validTarget) {
         try {
             return restClient.get()
                     .uri(validTarget.absoluteUri())

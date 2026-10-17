@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -66,5 +67,17 @@ class AssessmentApiIntegrationTests {
                 .andExpect(jsonPath("$.detail").value("The target request could not be completed."));
 
         verify(transport).createHttpResponseSnapshot(new ValidTarget(target, true));
+    }
+
+    @Test
+    void rejectsUserInfoWithBadRequestBeforeFetching() throws Exception {
+        mockMvc.perform(post("/assessments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"assessmentURI\":\"http://user:secret@localhost:8081/lab\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.title").value("Invalid assessment target"));
+
+        verifyNoInteractions(transport);
     }
 }
