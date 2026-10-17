@@ -1,42 +1,27 @@
-# TheSentinel
+# Sentinel
 
-TheSentinel is a Spring Boot security assessment engine project for exploring Java, Spring, HTTP security checks, concurrency, memory, and JVM behavior. The planned application will assess one permitted HTTP target and return structured findings. An application entry point and early model records exist. The REST endpoint, HTTP transport, security checks, and tests are not implemented, so it cannot yet perform an assessment.
+Sentinel is an incremental **concurrent web pentesting framework** for authorized targets and controlled laboratories. It is also a Java 25, Spring Boot, HTTP, concurrency, and JVM learning project. The current code is a passive HTTP assessment foundation: it can fetch one configured in-scope target through `HttpTransport`, evaluate X-Content-Type-Options and HSTS, and produce an `AssessmentReport` when called from Java. There is **no HTTP assessment endpoint yet**, so Milestone 1 is not complete. Crawling, active probes, identity-aware testing, evidence storage, AI enrichment, and a custom concurrent engine are planned work.
 
-## Toolchain and build
+## Current toolchain and verification
 
-- Java: **25** required; OpenJDK **25.0.4.1** used for verification. Maven compiler release is 25. No preview features.
-- Maven: **3.9.12** used to verify this skeleton; the selected Spring Boot release supports Maven 3.6.3 or later.
-- Spring Boot: **4.1.1**, the latest stable release verified on 2026-10-11. Boot manages Spring Framework and other dependency versions.
-- Dependencies: MVC, validation, and RestClient starters; Lombok for compile-time generation; the SLF4J API with Boot's default logging backend; and Boot's general, MVC, and RestClient test starters. Spring Boot manages their versions.
+- Java **25** (`maven.compiler.release=25`; no preview features), Maven **3.9.12** observed, Spring Boot **4.1.1** with Boot-managed dependency versions. Base package: `com.sentinel`.
+- `mvn -version` verifies Maven's JDK. `mvn validate` checks the Maven model. `mvn verify` compiles and runs the current suite; the latest review passed **43 tests** on OpenJDK 25.0.4.1. Those tests do not establish a working HTTP API or real-network timeout/DNS safety.
+- `application.yaml` sets Boot-managed client connect/read timeouts to **2s/5s**, disables automatic redirects, and lists local permitted origins and two header checks. The service checks origin before fetching. See [the M1 review](docs/milestone-1-review.md) for the remaining outbound safety work.
 
-Run `mvn -version` to confirm Maven uses JDK 25, then `mvn validate` to check the Maven project model and `mvn verify` to compile the current sources and complete the lifecycle. The JAR is still plain because Spring Boot repackaging has not been configured. A successful build with no tests verifies neither application startup nor behavior. No test sources exist yet.
+## Current request path
 
-`application.yaml` sets 2-second connection and 5-second read timeouts for Boot-configured HTTP clients, disables automatic redirects, and lists two local lab origins. The origin list is configuration data; a future service must check it before fetching. Typed binding and validation of the `assessment` settings are not implemented yet.
+Programmatic `AssessmentService.execute(URI)` → scope check and `ValidTarget` → `HttpTransport` → Spring `RestClient` → `HttpResponseSnapshot` → sequential passive checks → `AssessmentReport`.
 
-## Directory map
+The code is one Maven module. `service` contains orchestration, transport adapter, and current combined check implementation; `http` and `checks` contain small contracts; `config` binds lab settings; `model` holds snapshots and results. The current `HttpResponseSnapshot` serves as the HTTP observation type. Its headers are copied defensively. There is no production `api` controller yet.
 
-`src/main/java/com/sentinel/` is the base package. It contains the application entry point and early model records; other package directories remain placeholders.
+Use constructor injection and keep each assessment's mutable work local. The transport owns HTTP communication; passive checks evaluate existing observations and never fetch. The service coordinates the fetch and checks. Adding independent checks without changing the combined check class is an M2 task. The future execution engine must remain independent of testing technique, and every outbound request must respect scope and budgets. Active tests will be opt-in; AI will be optional.
 
-| Path | Intended responsibility |
-| --- | --- |
-| `api` | REST input validation, endpoint and response mapping, error responses |
-| `assessment` | Sequential orchestration and report assembly |
-| `checks` | Pure evaluation of HTTP observations |
-| `http` | Small transport contract and Spring RestClient adapter |
-| `model` | Immutable observations, findings, and reports |
-| `config` | Typed settings and infrastructure bean wiring |
-| `src/main/resources` | Application configuration and future shared resources |
-| `src/test/java`, `src/test/resources` | Future tests and local fixtures |
+## Project plan
 
-## Planned architecture
+- [Architecture and boundaries](docs/architecture.md)
+- [Revised milestone roadmap](docs/milestones.md)
+- [Detailed Kanban cards](docs/kanban.md)
+- [Java/JVM/security learning path](docs/learning-path.md)
+- [Verified Milestone 1 review](docs/milestone-1-review.md)
 
-REST request → assessment service → HTTP transport → security checks → JSON report.
-
-The eventual endpoint is `POST /assessments`. A request supplies one lab-permitted HTTP target. The response will contain a structured report with findings from X-Content-Type-Options and HSTS checks, plus clear completion, failure, and applicability outcomes. The request, report, and failure policy have not yet been defined.
-
-- Use constructor injection. Spring manages services, checks, transports, and infrastructure beans.
-- The assessment service depends on small `HttpTransport` and `SecurityCheck` contracts. A new check must not change the orchestration algorithm.
-- Checks evaluate observations; only the HTTP adapter makes network requests, using Spring RestClient.
-- Controllers validate requests and map responses. Models are immutable data objects.
-- Services and checks keep assessment-specific state local. Checks run sequentially within each assessment. Spring may serve several incoming requests concurrently.
-- Custom concurrency engines, cancellation, admission limits, persistence, and deep JVM investigation are future work.
+Work one unfinished card at a time. The immediate card is **M01-01: verify direct application launch and settle the M1 request/report contract**. The original [Milestone 1 tracker](MILESTONES.md) remains as a historical plan with a current-status pointer. Ask Codex to use `$milestone-review` for a read-only review; authorize tracker edits or Git delivery explicitly when wanted.

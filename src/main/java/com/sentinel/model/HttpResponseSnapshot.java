@@ -12,7 +12,7 @@ public record HttpResponseSnapshot(URI uri, HttpHeaders httpHeaders, HttpStatusC
             throw new IllegalArgumentException("httpHeaders cannot be null");
         }
         this.uri = uri;
-        this.httpHeaders = httpHeaders;
+        this.httpHeaders = HttpHeaders.readOnlyHttpHeaders(HttpHeaders.copyOf(httpHeaders));
         this.httpStatus = httpStatus;
     }
 }

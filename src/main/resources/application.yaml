@@ -3,14 +3,11 @@ spring:
     name: thesentinel
   http:
     clients:
-      connect-timeout: ${assessment.http.connect-timeout}
-      read-timeout: ${assessment.http.read-timeout}
+      connect-timeout: 2s
+      read-timeout: 5s
       redirects: dont-follow
 
 assessment:
-  http:
-    connect-timeout: 2s
-    read-timeout: 5s
   permitted-origins:
     - "http://localhost:8081"
     - "https://localhost:8443"

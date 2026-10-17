@@ -1,23 +1,32 @@
 package com.sentinel.model;
 
+import com.sentinel.exception.InvalidAssessmentTargetException;
+import com.sentinel.exception.OutOfScopeTargetException;
+
 import java.net.URI;
 
-public record ValidTarget(URI absoluteUri, boolean isInScope) {
+public record ValidTarget(@ValidScheme URI absoluteUri, boolean isInScope) {
 
     public ValidTarget {
         if (absoluteUri == null) {
-            throw new NullPointerException("absoluteUri has to be set");
+            throw new InvalidAssessmentTargetException("absoluteUri has to be set");
         }
-        String scheme = absoluteUri.getScheme();
+        String scheme = null;
+
+        if(absoluteUri.getScheme() != null){
+            scheme = absoluteUri.getScheme();
+        } else {
+            throw new InvalidAssessmentTargetException("absoluteUri.getScheme() has to be set");
+        }
 
         if (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")) {
-            throw new IllegalArgumentException("Scheme must be either 'http' or 'https'");
+            throw new InvalidAssessmentTargetException("Scheme must be either 'http' or 'https'");
         }
         if (absoluteUri.getHost() == null) {
-            throw new IllegalArgumentException("host has to be set");
+            throw new InvalidAssessmentTargetException("host has to be set");
         }
         if(!isInScope) {
-            throw new IllegalArgumentException("URI not in scope");
+            throw new OutOfScopeTargetException("URI not in scope");
         }
     }
 }
