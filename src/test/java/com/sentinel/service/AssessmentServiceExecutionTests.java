@@ -2,6 +2,7 @@ package com.sentinel.service;
 
 import com.sentinel.checks.SecurityChecks;
 import com.sentinel.config.AssessmentProperties;
+import com.sentinel.exception.AssessmentTransportException;
 import com.sentinel.http.HttpTransport;
 import com.sentinel.model.AssessmentStatus;
 import com.sentinel.model.CheckResult;
@@ -61,16 +62,14 @@ class AssessmentServiceExecutionTests {
     }
 
     @Test
-    void returnsFailedReportWithoutRunningChecksWhenTransportReturnsNull() {
+    void throwsTransportFailureWithoutRunningChecksWhenTransportReturnsNull() {
         HttpTransport transport = mock(HttpTransport.class);
         SecurityChecks check = mock(SecurityChecks.class);
         AssessmentService service = service(transport, List.of(check));
 
-        var report = service.execute(TARGET);
-
-        assertThat(report.target()).isEqualTo(TARGET);
-        assertThat(report.status()).isEqualTo(AssessmentStatus.FAILED);
-        assertThat(report.results()).isEmpty();
+        assertThatThrownBy(() -> service.execute(TARGET))
+                .isInstanceOf(AssessmentTransportException.class)
+                .hasMessage("HTTP transport returned no response snapshot");
         InOrder order = inOrder(transport);
         order.verify(transport).createHttpResponseSnapshot(new ValidTarget(TARGET, true));
         order.verifyNoMoreInteractions();

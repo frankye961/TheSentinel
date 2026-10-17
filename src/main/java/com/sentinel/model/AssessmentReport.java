@@ -9,6 +9,9 @@ public record AssessmentReport(URI target, AssessmentStatus status, List<CheckRe
     public AssessmentReport {
         Objects.requireNonNull(target, "target");
         Objects.requireNonNull(status, "status");
+        if(target.getUserInfo() != null) {
+            throw new IllegalArgumentException("user info cannot be accepted");
+        }
         results = List.copyOf(results);
     }
 }

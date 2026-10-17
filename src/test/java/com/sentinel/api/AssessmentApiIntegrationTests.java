@@ -52,4 +52,19 @@ class AssessmentApiIntegrationTests {
 
         verify(transport).createHttpResponseSnapshot(new ValidTarget(target, true));
     }
+
+    @Test
+    void mapsMissingTransportSnapshotToBadGateway() throws Exception {
+        URI target = URI.create("http://localhost:8081/lab");
+
+        mockMvc.perform(post("/assessments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"assessmentURI\":\"http://localhost:8081/lab\"}"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.status").value(502))
+                .andExpect(jsonPath("$.title").value("Assessment transport failure"))
+                .andExpect(jsonPath("$.detail").value("The target request could not be completed."));
+
+        verify(transport).createHttpResponseSnapshot(new ValidTarget(target, true));
+    }
 }

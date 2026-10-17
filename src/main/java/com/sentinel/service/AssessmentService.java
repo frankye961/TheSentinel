@@ -2,6 +2,8 @@ package com.sentinel.service;
 
 import com.sentinel.checks.SecurityChecks;
 import com.sentinel.config.AssessmentProperties;
+import com.sentinel.exception.AssessmentTransportException;
+import com.sentinel.exception.InvalidAssessmentTargetException;
 import com.sentinel.http.HttpTransport;
 import com.sentinel.model.AssessmentReport;
 import com.sentinel.model.AssessmentStatus;
@@ -36,10 +38,13 @@ public class AssessmentService {
     }
 
     public AssessmentReport execute(URI uri) {
+        if(uri.getUserInfo() != null) {
+            throw new InvalidAssessmentTargetException("user info cannot be accepted");
+        }
         HttpResponseSnapshot responseSnapshot = fetch(uri);
         if (responseSnapshot == null) {
             log.error("Assessment response is null");
-            return new AssessmentReport(uri, AssessmentStatus.FAILED, List.of());
+            throw new AssessmentTransportException("HTTP transport returned no response snapshot");
         }
         List<CheckResult> results = new ArrayList<>();
         for (SecurityChecks check : securityChecks) {
